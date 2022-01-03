@@ -1,0 +1,16 @@
+[
+{
+  "modid": "searcher",
+  "name": "SBSearcher",
+  "description": "Skyblock Auction House Searcher.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["2Hex"],
+  "credits": "Moulberry's NEU, DSM's SkyblockMod",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
