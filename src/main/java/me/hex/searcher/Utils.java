@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.renderer.GlStateManager;
@@ -13,87 +12,60 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.client.event.GuiScreenEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.input.Keyboard;
+import static me.hex.searcher.ChestGuiRendering.textField;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import static me.hex.searcher.Main.mc;
-
-public class OpenInventoryEvent {
+public class Utils {
     public final Gson gson;
-
-    static boolean notFirst = false;
     ArrayList<Slot> slots;
-    HashMap<ItemStack, Slot> itemSlot;
+    ArrayList<Boolean> booleans;
+    final int overlayColourDark;
 
-
-    public OpenInventoryEvent() {
+    public Utils() {
         gson = new GsonBuilder().setPrettyPrinting().create();
-        itemSlot = new HashMap<ItemStack, Slot>();
         slots = new ArrayList<Slot>();
-
+        booleans = new ArrayList<Boolean>();
+        overlayColourDark = new Color(0, 0, 0, 120).getRGB();
     }
 
-    @SubscribeEvent
-    public void onRenderGuiScreen(GuiScreenEvent.DrawScreenEvent.Post event) {
-
-        GuiScreen gui = event.gui;
-        String guiName = Main.getGUIName(gui);
-
-        if (guiName == null) {
-
-            return;
-        }
-        if (!(gui instanceof GuiChest)) {
-
-            return;
-        }
-
-            if (!notFirst)
-                mc.displayGuiScreen(new SearchGui(event.gui));
-
-            slots.clear();
-
-        for (Slot slot : ((GuiChest) gui).inventorySlots.inventorySlots) {
-
-            if (slot.getHasStack()) {
-                slots.add(slot);
-                renderItemReturn(((GuiChest) gui), slot.getStack(), slot.xDisplayPosition, slot.yDisplayPosition);
-            }
-            if(slots.contains(slot) && ((GuiChest) gui).inventorySlots
-                    .inventoryItemStacks.lastIndexOf(slot.getStack()) >= 1){
-                renderItemReturn(((GuiChest) gui), slot.getStack(), slot.xDisplayPosition, slot.yDisplayPosition);
-            }
-        }
-
-        slots.clear();
-    }
-
-    public void renderItemReturn(GuiChest gui, ItemStack stack, int x, int y) {
+    public void renderItem(GuiChest gui, ItemStack stack, int x, int y) {
 
         if (stack != null && !(stack.stackSize >= 1)) return;
 
-        boolean matches;
+        boolean matches = false;
+        booleans.clear();
 
-        if (Main.searchBy.trim().isEmpty()) {
+        if (textField.getText().trim().isEmpty()) {
             matches = true;
         } else {
-                matches = doesStackMatchSearch(stack, Main.searchBy.trim());
+
+            if (!textField.getText().contains(";")) {
+                matches = doesStackMatchSearch(stack, textField.getText().trim());
+
+            } else {
+                for (String split : textField.getText().split(";")) {
+                    booleans.add(doesStackMatchSearch(stack, split.trim()));
+                }
+
+                if (!booleans.contains(false)) {
+                    matches = true;
+                }
+
+                booleans.clear();
+            }
         }
         if (!matches) {
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(0, 0, 110 + Minecraft.getMinecraft().getRenderItem().zLevel);
-            final int overlayColourDark = new Color(0, 0, 0, 120).getRGB();
             int size = gui.inventorySlots.inventorySlots.size();
             drawOnSlot(size, x, y, overlayColourDark);
 
         }
     }
+
     /*
     ------------------------------------
     method taken from DSM's SkyblockMOD
@@ -115,11 +87,12 @@ public class OpenInventoryEvent {
         GlStateManager.popMatrix();
 
     }
-        /*
-        ---------------------------------------------------------------
-        methods from here and below are taken from Moulberry's NEU Mod.
-        ---------------------------------------------------------------
-        */
+
+    /*
+    ---------------------------------------------------------------
+    methods from here and below are taken from Moulberry's NEU Mod.
+    ---------------------------------------------------------------
+    */
     public boolean doesStackMatchSearch(ItemStack stack, String query) {
 
         if (query.startsWith("title:")) {
@@ -251,16 +224,6 @@ public class OpenInventoryEvent {
         }
 
         return internalname;
-    }
-
-    @SubscribeEvent
-    public void keyBoardInput(GuiScreenEvent.KeyboardInputEvent event) {
-
-        if (Keyboard.getEventKey() == 24) {
-            if (event.gui instanceof GuiChest) {
-                mc.displayGuiScreen(new SearchGui(event.gui));
-            }
-        }
     }
 
 }
