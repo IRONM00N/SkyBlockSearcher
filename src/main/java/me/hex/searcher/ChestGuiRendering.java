@@ -13,12 +13,14 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static me.hex.searcher.Main.content;
+
 public class ChestGuiRendering {
+
     public static GuiTextField textField;
     public ArrayList<Slot> slots;
     private final Utils utils;
-    boolean focused = false;
-
+    boolean first = true;
 
     public ChestGuiRendering(Utils utils) {
         slots = new ArrayList<Slot>();
@@ -64,36 +66,7 @@ public class ChestGuiRendering {
 
         textField.mouseClicked(Mouse.getX(), Mouse.getY(), Mouse.getEventButton());
 
-//        int mouseX = Mouse.getX();
-//        int mouseY = Mouse.getY();
-//        int elementX = textField.xPosition;
-//        int elementY = textField.yPosition;
-//        int elementWidth = textField.width;
-//        int elementHeight = textField.height;
-//
-//        if (mouseX >= elementX && mouseX <= elementX + elementWidth
-//                && mouseY >= elementY && mouseY <= elementY + elementHeight) {
-//
-//            if(!focused) {
-//                textField.setFocused(true);
-//                focused = true;
-//                System.out.println("WA");
-//            } else {
-//                textField.setFocused(false);
-//                focused = false;
-//                System.out.println("AW");
-//            }
-//        }
-
     }
-//    @SubscribeEvent
-//    public void tickEvent(TickEvent.ClientTickEvent event){
-//        if(!(Main.mc.currentScreen instanceof GuiChest)) return;
-//
-//        if(!(event.phase == TickEvent.Phase.END)) return;
-//        if(Keyboard.getEventKey() == 15) return;
-//        setFocused(focused);
-//    }
 
 
     @SubscribeEvent
@@ -103,57 +76,37 @@ public class ChestGuiRendering {
             System.out.println("DEBUG ID: 31");
             return;
         }
+        if (!textField.isFocused()) return;
 
-        if(Keyboard.getEventKey() == 15){
-            if(!focused){
-                focused = true;
-                setFocused(true);
-                return;
-            } else {
-                focused = false;
-                setFocused(false);
+        try {
+            if (Integer.parseInt(String.valueOf(Keyboard.getEventCharacter())) < 10) {
                 return;
             }
-        }
-        if (!(String.valueOf(Keyboard.getEventCharacter()).equals(";")
-                || !(String.valueOf(Keyboard.getEventCharacter()).equals("'")))) {
-
-            Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
-            Matcher m = p.matcher(String.valueOf(Keyboard.getEventCharacter()));
-            boolean b = m.find();
-
-            if (b) {
-                event.setCanceled(true);
-                return;
-            }
+        } catch (NumberFormatException ignored) {
         }
 
-        if (String.valueOf(Keyboard.getEventCharacter()).equalsIgnoreCase("e") && textField.isFocused()) {
+        if (String.valueOf(Keyboard.getEventCharacter()).equalsIgnoreCase("e")
+                || String.valueOf(Keyboard.getEventCharacter()).equalsIgnoreCase("q")) {
             event.setCanceled(true);
-            textField.textboxKeyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey());
         }
-    }
 
-    @SubscribeEvent
-    public void onKeyboardInput(GuiScreenEvent.KeyboardInputEvent.Post event) {
-        if (!(event.gui instanceof GuiChest)) return;
-
-        if (textField == null) {
-            System.out.println("DEBUG ID: 41");
-            return;
-        }
 
         if (Keyboard.getEventKey() == 14) {
             // backspace
-
-            if (!textField.getText().isEmpty()) {
-                textField.setText(textField.getText().substring(0, textField
-                        .getText().length() - 1));
-
+            if (!first) {
+                first = true;
+                return;
             }
+
+            first = false;
+            if (textField.getText().isEmpty() || content.isEmpty()) return;
+            content = content.substring(0, content.length() - 1);
+            textField.setText(content);
         } else {
             //add letter
+            if (containsNonAlpha(Keyboard.getEventCharacter())) return;
             textField.writeText(String.valueOf(Keyboard.getEventCharacter()));
+            content = content.concat(String.valueOf(Keyboard.getEventCharacter()));
         }
     }
 
@@ -176,11 +129,7 @@ public class ChestGuiRendering {
             return;
         }
 
-        if(focused){
-            setFocused(true);
-        } else {
-            setFocused(false);
-        }
+        setFocused(Keyboard.isKeyDown(15));
 
         slots.clear();
 
@@ -197,7 +146,10 @@ public class ChestGuiRendering {
         }
 
         slots.clear();
+
+        textField.setText(content);
     }
+
     private void setFocused(boolean power) {
         if (power) {
             textField.setCanLoseFocus(false);
@@ -206,5 +158,15 @@ public class ChestGuiRendering {
             textField.setCanLoseFocus(true);
             textField.setFocused(false);
         }
+    }
+
+    private boolean containsNonAlpha(char s) {
+        if (String.valueOf(s).equals(";")) return false;
+        if (String.valueOf(s).equals("'")) return false;
+
+        Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+        Matcher m = p.matcher(String.valueOf(s));
+
+        return m.find();
     }
 }

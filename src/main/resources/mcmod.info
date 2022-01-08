@@ -2,13 +2,13 @@
 {
   "modid": "searcher",
   "name": "SBSearcher",
-  "description": "Skyblock Auction House Searcher.",
+  "description": "Skyblock Inventories Searcher.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
   "authorList": ["2Hex"],
-  "credits": "Moulberry's NEU, DSM's SkyblockMod",
+  "credits": "Moulberry's NEU, DSM's SkyblockMod, I used some of their code.",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
