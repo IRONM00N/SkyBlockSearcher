@@ -2,7 +2,7 @@
 {
   "modid": "searcher",
   "name": "SBSearcher",
-  "description": "Skyblock Inventories Searcher.",
+  "description": "Hypixel SkyBlock Inventory Searcher.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
